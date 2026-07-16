@@ -13,6 +13,10 @@ A learning repository tracking JavaScript fundamentals from first principles, al
 - [03 — Identifiers & Comments](#03--identifiers--comments)
 - [04 — Literals & Numbers](#04--literals--numbers)
 - [05 — Operators](#05--operators)
+  - [05.1 — String Operators & Template Literals](#051--string-operators--template-literals)
+  - [05.2 — Ternary (Conditional) Operator](#052--ternary-conditional-operator)
+  - [05.3 — Nested Ternary](#053--nested-ternary)
+  - [05.4 — Type Operators (`typeof`)](#054--type-operators-typeof)
 - [IQ_Notes — Reference Library](#iq_notes--reference-library)
 
 ---
@@ -46,7 +50,19 @@ LearnPlaywright3x/
 │   ├── 16_Comparsion_Operator.js             # ==, ===, !=, !==, >, <, >=, <=
 │   ├── 17_Logical_Operators.js               # && || !  (AND / OR / NOT gates)
 │   ├── 18_Confusing_Comparsion.js            # "" vs 0 vs "0" coercion, broken transitivity
-│   └── 18_Confusing_Comparsion_P2.js         # null/undefined equality gotchas
+│   ├── 18_Confusing_Comparsion_P2.js         # null/undefined equality gotchas
+│   ├── 20_Question.js                        # != vs !== practice
+│   ├── 21_String_Op.js                       # string concat with + and +=, console.log multi-arg
+│   ├── 22_Ternary_Op.js                      # condition ? valueIfTrue : valueIfFalse
+│   ├── 23_IQ.js                              # ternary → PASS/FAIL assertion result
+│   ├── 24_IQ2.js                             # ternary → env-based baseUrl switch
+│   ├── 25_IQ3.js                             # ternary → CI headless vs headed
+│   ├── 26_IQ4.js                             # ternary → SLA check + template literals
+│   ├── 27_IQ5.js                             # ternary returning booleans (anti-pattern)
+│   ├── 28_Nested_Terny_Op.js                 # nested ternary — age → drink check
+│   ├── 29_IQ_NT.js                           # nested ternary — HTTP status category
+│   ├── 30_NT_IQ2.js                          # nested ternary — temperature bands
+│   └── 31_Type_Op.js                         # typeof on string/number/array/null
 └── IQ_Notes/
     ├── README.md                             # reusable prompt template for new IQ notes
     ├── Source_Code_ByteCODE_Binary_IQ.md      # source vs bytecode vs machine code
@@ -243,6 +259,169 @@ console.log(null == 0);  // false
 |----------|:--------------:|----------|
 | `===` / `!==` | No | Default — almost always |
 | `==` / `!=` | Yes | Only the intentional `x == null` check |
+
+---
+
+#### 05.1 — String Operators & Template Literals
+
+**Concept:** `+` doubles as string concatenation, `+=` appends in place, and backtick template literals interpolate values with `${...}`. `console.log` also accepts multiple comma-separated arguments and prints them space-separated.
+
+**Why:** Test logs, dynamic URLs, and assertion messages are all built by joining strings — template literals do it without the `+ " " +` noise.
+
+**Q&A — why use this?**
+- **Q: When do I use a template literal over `+`?** A: Any time a variable sits inside a sentence — `` `Response: ${ms}ms` `` beats `"Response: " + ms + "ms"` for readability, and it supports multi-line strings.
+- **Q: What's the difference between `console.log("a", b)` and `console.log("a" + b)`?** A: The comma form passes separate arguments (space-inserted, each formatted by type); `+` coerces `b` to a string and joins with no space.
+- **Q: What's the gotcha with `+`?** A: It's overloaded — `1 + 2` is `3`, but `1 + "2"` is `"12"`. One string operand turns the whole thing into concatenation.
+
+```mermaid
+flowchart LR
+    Plus["+ operator"] --> Check{Either side a string?}
+    Check -->|Yes| Concat["Concatenate → '12'"]
+    Check -->|No| Add["Add → 3"]
+    Tpl["`Backtick ${var}`"] --> Interp["Interpolate — no coercion surprises"]
+```
+
+```js
+let s = "Hi, ";
+console.log(typeof s);       // "string"
+s += "Dev";
+console.log(s);              // "Hi, Dev"
+
+console.log("Hello" + "World");        // "HelloWorld"  → concatenation
+console.log("HELLO", "Prrammod");      // "HELLO Prrammod" → multi-arg, space added
+console.log(1, 2, 3, 4, "Hello", true);
+
+// Template literal
+let sla = 1000;
+console.log(`What is the SLA time ? - ${sla}`);
+```
+
+---
+
+#### 05.2 — Ternary (Conditional) Operator
+
+**Concept:** `condition ? valueIfTrue : valueIfFalse` — the only JS operator taking three operands. It's an *expression*, so it returns a value you can assign directly.
+
+**Why:** Picking one of two values (headless vs headed, staging vs prod URL, PASS vs FAIL) is a one-liner instead of a four-line `if/else` that has to declare the variable first.
+
+**Q&A — why use this?**
+- **Q: When do I reach for it?** A: When you need a **value**, not a branch of logic — config switches, status labels, short assertion messages.
+- **Q: What does it replace?** A: A pre-declared `let x;` followed by `if (cond) { x = a } else { x = b }`.
+- **Q: What's the gotcha?** A: `cond ? true : false` is redundant — the condition is already a boolean, so just use `cond` (see `27_IQ5.js`). Also, don't use a ternary for side effects; use `if`.
+
+```mermaid
+flowchart TD
+    C{condition} -->|true| T[valueIfTrue]
+    C -->|false| F[valueIfFalse]
+    T --> R[assigned to variable]
+    F --> R
+```
+
+```js
+// Basic form: condition ? value(if true) : value(if false)
+let age = 20;
+let canGo = age > 18 ? "Yes" : "No";
+console.log("This person can go goa ? ", canGo);
+
+// Assertion result
+let actualStatusCode = 200, expectedStatusCode = 200;
+console.log(actualStatusCode === expectedStatusCode ? "✅ PASS" : "❌ FAIL");
+
+// Environment switch
+let environment = "staging";
+let baseUrl = environment === "prod"
+    ? "https://api.example.com"
+    : "https://staging-api.example.com";
+
+// CI-aware browser mode
+let isCI = true;
+console.log("Launching browser in:", isCI ? "headless" : "headed", "mode");
+
+// SLA check + template literal
+let responseTime = 850, sla = 1000;
+console.log(`Response: ${responseTime}ms — ${responseTime <= sla ? "Within SLA ✅" : "SLA breached ❌"}`);
+```
+
+---
+
+#### 05.3 — Nested Ternary
+
+**Concept:** A ternary whose `false` branch is another ternary, chaining several conditions into one expression — the readable form is a flat `a ? x : b ? y : z` ladder, one condition per line.
+
+**Why:** Mapping a value onto 3+ buckets (HTTP status → category, temperature → feel) reads as a clean lookup ladder instead of a stack of `else if` blocks.
+
+**Q&A — why use this?**
+- **Q: How do I keep it readable?** A: Chain flat, not inward — put each `cond ? result :` on its own line and let the final `else` value sit last. Order matters: conditions are evaluated top-down, first match wins.
+- **Q: When should I NOT nest?** A: Past ~4 branches, or when branches do anything besides return a value — switch to `if/else` or an object lookup map.
+- **Q: What's the gotcha?** A: Deep inward nesting (`a ? (b ? x : y) : z`) gets unreadable fast, and a wrong condition order silently produces the wrong bucket — `statusCode < 500` before `statusCode < 400` would label every redirect a client error.
+
+```mermaid
+flowchart TD
+    S{statusCode < 300} -->|true| Su[Success]
+    S -->|false| R{statusCode < 400}
+    R -->|true| Re[Redirect]
+    R -->|false| C{statusCode < 500}
+    C -->|true| Ce[Client Error]
+    C -->|false| Se[Server Error]
+```
+
+```js
+// Inward nesting — works, but harder to read
+let age = 26;
+let enjoy = age > 18 ? (age > 26 ? "Drink" : "No") : false;
+console.log(`Can pramod Drink? : ${enjoy}`);
+
+// Flat ladder — preferred. First match wins, so order matters.
+let statusCode = 404;
+let category =
+    statusCode < 300 ? "Success" :
+    statusCode < 400 ? "Redirect" :
+    statusCode < 500 ? "Client Error" : "Server Error";
+console.log(`Status ${statusCode}: ${category}`);
+
+let temp = 35;
+let feel = (temp >= 40) ? "Very Hot" :
+           (temp >= 30) ? "Hot" :
+           (temp >= 20) ? "Warm" :
+           (temp >= 10) ? "Cool" : "Cold";
+console.log("Temperature:", temp, "| Feel:", feel);
+```
+
+---
+
+#### 05.4 — Type Operators (`typeof`)
+
+**Concept:** `typeof` is a unary operator returning the type of a value as a lowercase string — `"string"`, `"number"`, `"boolean"`, `"undefined"`, `"object"`, `"function"`, `"bigint"`, `"symbol"`.
+
+**Why:** JS is dynamically typed, so a variable's type is only knowable at runtime — `typeof` is the runtime guard before you trust a value's shape.
+
+**Q&A — why use this?**
+- **Q: Why do `123` and `31.4` both report `"number"`?** A: JS has one numeric type (IEEE 754 double) — no `int`/`float` split.
+- **Q: Why is `typeof []` `"object"`?** A: Arrays *are* objects. `typeof` can't distinguish them — use `Array.isArray([])` instead.
+- **Q: What's the gotcha?** A: `typeof null === "object"` (the 1995 bug kept for compatibility). To check for null, compare directly: `x === null`.
+
+```mermaid
+flowchart TD
+    T["typeof x"] --> P{primitive?}
+    P -->|string/number/boolean| Exact["exact type string ✅"]
+    P -->|null| Bug["'object' ⚠️ use x === null"]
+    P -->|array| Arr["'object' ⚠️ use Array.isArray&#40;x&#41;"]
+```
+
+```js
+console.log(typeof "hello");   // "string"
+console.log(typeof 123);       // "number"  (int → number)
+console.log(typeof 31.4);      // "number"  (float → number)
+console.log(typeof true);      // "boolean"
+console.log(typeof undefined); // "undefined"
+console.log(typeof null);      // "object"  ← quirk
+console.log(typeof []);        // "object"  ← use Array.isArray([])
+```
+
+| Check | Wrong way | Right way |
+|-------|-----------|-----------|
+| Is it null? | `typeof x === "null"` (never true) | `x === null` |
+| Is it an array? | `typeof x === "array"` (never true) | `Array.isArray(x)` |
 
 ---
 
