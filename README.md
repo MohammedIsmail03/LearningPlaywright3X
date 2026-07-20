@@ -17,6 +17,9 @@ A learning repository tracking JavaScript fundamentals from first principles, al
   - [05.2 — Ternary (Conditional) Operator](#052--ternary-conditional-operator)
   - [05.3 — Nested Ternary](#053--nested-ternary)
   - [05.4 — Type Operators (`typeof`)](#054--type-operators-typeof)
+  - [05.5 Increment and Decrement Operators](#055-increment-and-decrement-operators)
+  - [05.6 Nullish Coalescing Operator](#056-nullish-coalescing-operator)
+- [06 Statements and Conditionals](#06-statements-and-conditionals)
 - [IQ_Notes — Reference Library](#iq_notes--reference-library)
 
 ---
@@ -62,7 +65,16 @@ LearnPlaywright3x/
 │   ├── 28_Nested_Terny_Op.js                 # nested ternary — age → drink check
 │   ├── 29_IQ_NT.js                           # nested ternary — HTTP status category
 │   ├── 30_NT_IQ2.js                          # nested ternary — temperature bands
-│   └── 31_Type_Op.js                         # typeof on string/number/array/null
+│   ├── 31_Type_Op.js                         # typeof on string/number/array/null
+│   ├── 32_In_De_Op.js                        # pre vs post increment (++a vs a++)
+│   ├── 33_Ad_Incre.js                        # increment inside an expression
+│   ├── 34_Incre_Part2.js                     # post-increment return value vs variable
+│   ├── 35_Decrement.js                       # pre vs post decrement (--a vs a--)
+│   └── 36_Null_Coalescing.js                 # nullish coalescing ?? (null/undefined fallback)
+├── 06_chapter_Statement/
+│   ├── 37_IQ.js                              # if / else -> age gate
+│   ├── 38_IQ2.js                             # nested if -> drink-age check
+│   └── 38_Multiple_Condition.js              # else-if ladder -> score to grade
 └── IQ_Notes/
     ├── README.md                             # reusable prompt template for new IQ notes
     ├── Source_Code_ByteCODE_Binary_IQ.md      # source vs bytecode vs machine code
@@ -425,6 +437,133 @@ console.log(typeof []);        // "object"  ← use Array.isArray([])
 
 ---
 
+#### 05.5 Increment and Decrement Operators
+
+**Concept:** `++` adds 1, `--` subtracts 1. Position matters: **pre** (`++a`) changes the variable *then* returns the new value; **post** (`a++`) returns the *old* value first, then changes the variable.
+
+**Why:** The pre/post distinction is the classic JS interview trap and a real bug source, `let b = a++` leaves `b` holding the old value while `a` has already moved on.
+
+**Q&A — why use this?**
+- **Q: What's the difference between `++a` and `a++`?** A: `++a` increments then hands back the updated value; `a++` hands back the current value then increments. Same effect on `a`, different value returned to the expression.
+- **Q: Why does `let b = a++` surprise people?** A: `a++` returns `a`'s value *before* the bump, so `b` gets the old number even though `a` is now one higher.
+- **Q: What's the gotcha in expressions?** A: Mixing `++a + a++` in one line is evaluation-order dependent and unreadable, keep increments on their own statement in real code.
+
+```mermaid
+flowchart TD
+    Op{"++ / -- position"} -->|"pre: ++a"| Pre["change first -> return NEW value"]
+    Op -->|"post: a++"| Post["return OLD value -> change after"]
+    Pre --> Same["variable ends the same either way"]
+    Post --> Same
+```
+
+```js
+// Post-increment: b gets the OLD value, a moves on
+let a = 10;
+let b = a++;
+console.log(b);   // 10  (value before the bump)
+console.log(a);   // 11
+
+// Post-decrement mirrors it
+let c = 10;
+let d = c--;
+console.log(d);   // 10
+console.log(c);   // 9
+```
+
+---
+
+#### 05.6 Nullish Coalescing Operator
+
+**Concept:** `??` returns its right-hand fallback only when the left side is `null` or `undefined`. Any other value (including `0`, `""`, `false`) passes through unchanged.
+
+**Why:** It's the safe default operator for API responses and config, `||` would wrongly replace legit falsy values like `0` or `""`, `??` only fires on genuinely missing data.
+
+**Q&A — why use this?**
+- **Q: When do I reach for it?** A: Supplying a default for a value that might be missing, `let data = apiResponse ?? "{}"`.
+- **Q: How is it different from `||`?** A: `||` triggers on *any* falsy value (`0`, `""`, `false`, `null`, `undefined`); `??` triggers ONLY on `null`/`undefined`, so `0 ?? 5` is `0` but `0 || 5` is `5`.
+- **Q: What's the gotcha?** A: Don't mix `??` with `&&`/`||` without parentheses, JS throws a `SyntaxError` unless you group them explicitly.
+
+```mermaid
+flowchart TD
+    V{"left value"} -->|"null / undefined"| Fb["use fallback (right side)"]
+    V -->|"0, '', false, or anything else"| Keep["keep the left value"]
+```
+
+```js
+let amul = null;
+let val = amul ?? "NANDANI Milk";
+console.log(val);            // "NANDANI Milk"  (null -> fallback)
+
+let apiResponse = null;
+console.log(apiResponse ?? "{}");   // "{}"  (missing -> fallback)
+
+let name = "Pramod";
+console.log(name ?? "{}");   // "Pramod"  (present -> kept)
+```
+
+| Left value | `left \|\| right` | `left ?? right` |
+|------------|:----------------:|:---------------:|
+| `null` / `undefined` | right | right |
+| `0` / `""` / `false` | right | **left kept** |
+
+---
+
+### 06 Statements and Conditionals
+
+**Concept:** `if / else if / else` is JS's core branching statement, it runs a block only when its condition is truthy. Blocks can nest (an `if` inside an `if`) and chain into an `else if` ladder that tests conditions top-down, first match wins.
+
+**Why:** Every test skip, environment guard, and pass/fail branch in a Playwright suite is an `if`. Unlike the ternary operator (which returns a value), a statement runs *logic*, multiple lines, side effects, nested checks.
+
+**Q&A — why use this?**
+- **Q: When do I use `if` over a ternary?** A: When a branch does more than pick a value, logging, multiple statements, nested conditions, or side effects. Ternary is for values, `if` is for logic.
+- **Q: How does an `else if` ladder evaluate?** A: Top to bottom, the first condition that is truthy runs and the rest are skipped, so order the ranges correctly (`>= 90` before `>= 80`).
+- **Q: What's the gotcha with nested `if`?** A: An inner `else` binds to the nearest `if`, mis-indentation hides which condition it actually pairs with. Keep braces explicit.
+
+```mermaid
+flowchart TD
+    S["score"] --> A{">= 90?"}
+    A -->|yes| GA["Grade A"]
+    A -->|no| B{">= 80?"}
+    B -->|yes| GB["Grade B"]
+    B -->|no| C{">= 70?"}
+    C -->|yes| GC["Grade C"]
+    C -->|no| More["...else if ladder continues -> else"]
+```
+
+```js
+// else-if ladder: first truthy branch wins, so order matters
+let score = 78;
+
+if (score >= 90) {
+    console.log("Grade: A — Excellent");
+} else if (score >= 80) {
+    console.log("Grade: B — Good");
+} else if (score >= 70) {
+    console.log("Grade: C — Can do better");
+} else if (score >= 60) {
+    console.log("Grade: D — Needs Improvement");
+} else {
+    console.log("Bring parents");
+}
+
+// Nested if: inner check only runs when the outer passes
+let age = 27;
+if (age > 18) {
+    console.log("GOA");
+    if (age > 26) console.log("DRINK!");
+    else console.log("You CAN'T DRINK!");
+} else {
+    console.log("No GOA");
+}
+```
+
+| Construct | Returns a value? | Use for |
+|-----------|:----------------:|---------|
+| Ternary `? :` | Yes | Picking one of two values |
+| `if / else` | No | Branching logic, side effects, nesting |
+
+---
+
 ## IQ_Notes — Reference Library
 
 Concept explainers, generated on demand via the prompt template in [`IQ_Notes/README.md`](IQ_Notes/README.md) — table breakdown, code walkthrough, pipeline diagram, TL;DR.
@@ -439,4 +578,4 @@ Concept explainers, generated on demand via the prompt template in [`IQ_Notes/RE
 
 ---
 
-> **TL;DR:** This repo is a from-scratch JavaScript fundamentals course (`console.log` → scoping → identifiers → literals/numbers → operators) plus a `00_chaptet_GENAI` folder for LLM automation-framework prompting, backed by an `IQ_Notes` library of standalone concept references anyone can regenerate with the same prompt template.
+> **TL;DR:** This repo is a from-scratch JavaScript fundamentals course (`console.log` → scoping → identifiers → literals/numbers → operators → statements/conditionals) plus a `00_chaptet_GENAI` folder for LLM automation-framework prompting, backed by an `IQ_Notes` library of standalone concept references anyone can regenerate with the same prompt template.
