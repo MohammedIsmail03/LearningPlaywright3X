@@ -20,6 +20,8 @@ A learning repository tracking JavaScript fundamentals from first principles, al
   - [05.5 Increment and Decrement Operators](#055-increment-and-decrement-operators)
   - [05.6 Nullish Coalescing Operator](#056-nullish-coalescing-operator)
 - [06 Statements and Conditionals](#06-statements-and-conditionals)
+- [07 Switch Statements](#07-switch-statements)
+- [08 User Input](#08-user-input)
 - [IQ_Notes — Reference Library](#iq_notes--reference-library)
 
 ---
@@ -75,6 +77,22 @@ LearnPlaywright3x/
 │   ├── 37_IQ.js                              # if / else -> age gate
 │   ├── 38_IQ2.js                             # nested if -> drink-age check
 │   └── 38_Multiple_Condition.js              # else-if ladder -> score to grade
+├── 07_chapter_switch/
+│   ├── 39_Switch.js                          # basic switch statement and break
+│   ├── 40_IQ.js                              # deliberate fall-through example
+│   ├── 41_IQ2.js                             # switch with breaks and default
+│   ├── 42_REAL_API_Testing.js                # HTTP status-code branching
+│   ├── 43_Switch_Group.js                    # grouped browser cases
+│   ├── 44_IQ.js                              # string-case fall-through
+│   ├── 45_IQ2.js                             # switch(true) range matching
+│   ├── 46_IQ3.js                             # duplicate case behavior
+│   └── 47_IQ4.js                             # strict case matching
+├── 08_UserInputs/
+│   ├── README.md                             # input methods and run instructions
+│   ├── 48_JS.js                              # browser prompt input
+│   ├── 49_Node_UI.js                         # Node.js readline input
+│   ├── 50_Prompt.js                          # prompt-sync package input
+│   └── 51_Fs.js                              # stdin input with fs.readFileSync
 └── IQ_Notes/
     ├── README.md                             # reusable prompt template for new IQ notes
     ├── Source_Code_ByteCODE_Binary_IQ.md      # source vs bytecode vs machine code
@@ -564,6 +582,53 @@ if (age > 18) {
 
 ---
 
+### 07 Switch Statements
+
+**Concept:** A `switch` compares one expression against multiple `case` values using strict equality. `break` stops execution after a match; without it, execution falls through into later cases.
+
+**Why:** A switch can make fixed-value branching clearer than a long `if / else if` chain. The chapter also covers grouped cases, `default`, deliberate fall-through, HTTP status codes, and the `switch (true)` range pattern.
+
+```js
+let responseCode = 404;
+
+switch (responseCode) {
+    case 200:
+        console.log("200 OK");
+        break;
+    case 404:
+        console.log("404 Not found!");
+        break;
+    default:
+        console.log("No status code matched");
+}
+```
+
+---
+
+### 08 User Input
+
+**Concept:** JavaScript input depends on its runtime. Browsers provide `prompt()`, while Node.js can use `readline`, third-party packages such as `prompt-sync`, or standard input through `fs.readFileSync(0, "utf8")`.
+
+**Important:** `readFileSync(0, "utf8")` waits until EOF. In an interactive macOS/Linux terminal, type the value, press Enter, and then press `Ctrl+D`. Use `readline` when the user should only need to press Enter.
+
+```js
+const readline = require("readline");
+
+const rl = readline.createInterface({
+    input: process.stdin,
+    output: process.stdout
+});
+
+rl.question("Enter a number: ", (input) => {
+    console.log("Hi", Number(input));
+    rl.close();
+});
+```
+
+See [`08_UserInputs/README.md`](08_UserInputs/README.md) for a comparison of all four input methods and their run commands.
+
+---
+
 ## IQ_Notes — Reference Library
 
 Concept explainers, generated on demand via the prompt template in [`IQ_Notes/README.md`](IQ_Notes/README.md) — table breakdown, code walkthrough, pipeline diagram, TL;DR.
@@ -578,4 +643,4 @@ Concept explainers, generated on demand via the prompt template in [`IQ_Notes/RE
 
 ---
 
-> **TL;DR:** This repo is a from-scratch JavaScript fundamentals course (`console.log` → scoping → identifiers → literals/numbers → operators → statements/conditionals) plus a `00_chaptet_GENAI` folder for LLM automation-framework prompting, backed by an `IQ_Notes` library of standalone concept references anyone can regenerate with the same prompt template.
+> **TL;DR:** This repo is a from-scratch JavaScript fundamentals course (`console.log` → scoping → identifiers → literals/numbers → operators → conditionals → switch statements → user input) plus a `00_chaptet_GENAI` folder for LLM automation-framework prompting, backed by an `IQ_Notes` library of standalone concept references anyone can regenerate with the same prompt template.
